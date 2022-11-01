@@ -81,4 +81,8 @@ public class Empleado implements Serializable {
   @Column(name = "fechaIngreso")
   private @NonNull Date fechaIngreso;
 
+  @ApiModelProperty(notes = "Pago por Antiguedad")
+  @Column(name = "pagoAntiguedad")
+  private int pagoAntiguedad;
+
 }

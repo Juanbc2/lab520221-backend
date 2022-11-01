@@ -12,6 +12,5 @@ import com.udea.persona.model.Empleado;
  * @author Vanessa
  */
 public interface IEmpleadoDAO extends CrudRepository<Empleado, Long> {
-    public void deleteByCedula(Long cedula);
     public Optional<Empleado> getByCedula(Long cedula);
 }

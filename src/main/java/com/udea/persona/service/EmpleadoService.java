@@ -2,6 +2,8 @@ package com.udea.persona.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 
 import com.udea.persona.dao.IEmpleadoDAO;
@@ -37,8 +39,9 @@ public class EmpleadoService {
     return empleadoDAO.getByCedula(cedula);
   }
 
-  public void deleteCedula(Long cedula) {
-    empleadoDAO.deleteByCedula(cedula);
+  public void refreshAll(List<Empleado> empleados) {
+    empleadoDAO.deleteAll();
+    empleadoDAO.saveAll(empleados);
   }
 
 }

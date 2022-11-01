@@ -5,8 +5,13 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @RestController
 @RequestMapping("/api/v1/empleados")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 @Api(value = "Sistema de Administración de Empleados", description = "Operaciones relativas al empleado en el Sistema de Gestión de Empleados")
 public class EmpleadoController {
 
@@ -36,22 +41,16 @@ public class EmpleadoController {
   EmpleadoService empleadoService;
 
   @ApiOperation(value = "Crear empleado")
-  @PutMapping("/save")
+  @PostMapping("/save")
   public Empleado save(@ApiParam(value = "Empleado a crear", required = true) @RequestBody Empleado empleado) {
+    empleado.setPagoAntiguedad(0);
     return empleadoService.save(empleado);
   }
 
   @ApiOperation(value = "Actualizar empleado")
-  @PostMapping("/update")
+  @PostMapping("/update/{id}")
   public Empleado update(@ApiParam(value = "Empleado a actualizar", required = true) @RequestBody Empleado empleado) {
     return empleadoService.update(empleado);
-  }
-
-  @ApiOperation(value = "Eliminar empleado por cedula")
-  @DeleteMapping("/deletebycedula/{cedula}")
-  public void deleteCedula(
-      @ApiParam(value = "Cedula del empleado a eliminar", required = true) @PathVariable("cedula") Long cedula) {
-    empleadoService.deleteCedula(cedula);
   }
 
   @ApiOperation(value = "Eliminar empleado")
@@ -91,6 +90,24 @@ public class EmpleadoController {
     } else {
       throw new ModelNotFoundException("No se ha encontrado el empleado con cedula: " + cedula);
     }
+  }
+
+  @GetMapping("/checkAntiguedad")
+  public List<Empleado> checkAntiguedad() {
+    Date currentDate = new Date();
+    List<Empleado> antiguos = (List<Empleado>) empleadoService.list();
+    for (Empleado empleado : antiguos) {
+      long diffInMillies = Math.abs(currentDate.getTime() - empleado.getFechaIngreso().getTime());
+      long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+      if (diff >= 730 && empleado.getPagoAntiguedad() == 0) {
+        long oldSalario = (long) empleado.getSalario();
+        long newSalario = (long) (oldSalario * 1.1);
+        empleado.setSalario(newSalario);
+        empleado.setPagoAntiguedad(1);
+      }
+    }
+    empleadoService.refreshAll(antiguos);
+    return (List<Empleado>) antiguos;
   }
 
 }
